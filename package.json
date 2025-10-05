@@ -1,0 +1,27 @@
+{
+  "name": "lampchat",
+  "version": "1.0.0",
+  "description": "A modern ChatGPT-like chatbot application",
+  "scripts": {
+    "install:all": "npm install && cd backend && npm install && cd ../frontend && npm install && cd ..",
+    "dev": "concurrently --kill-others-on-fail \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "dev:backend": "cd backend && npm run dev",
+    "dev:frontend": "cd frontend && npm run dev",
+    "start": "concurrently --kill-others-on-fail \"npm run start:backend\" \"npm run start:frontend\"",
+    "start:backend": "cd backend && npm start",
+    "start:frontend": "cd frontend && npm start"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  },
+  "keywords": [
+    "chatbot",
+    "ai",
+    "nextjs",
+    "react",
+    "openrouter"
+  ],
+  "author": "",
+  "license": "MIT"
+}
+
