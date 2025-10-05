@@ -19,9 +19,16 @@ async function handleImageGeneration(req, res) {
       enableWebSearch: false
     })
 
+    const assistantMessage = responseData.choices[0]?.message?.content || ''
     const images = responseData.choices[0]?.message?.images || []
+
+    const message = images.length > 0
+      ? assistantMessage || 'Here is your generated image.'
+      : assistantMessage
+
     res.json({
       success: true,
+      message,
       images
     })
   } catch (error) {
