@@ -36,7 +36,7 @@ async function handleImageGeneration(req, res) {
 async function handleTextToSpeech(req, res) {
   try {
     const { text } = req.body
-    
+
     if (!text) {
       return res.status(400).json({ error: 'Text is required' })
     }
@@ -57,4 +57,3 @@ module.exports = {
   handleImageGeneration,
   handleTextToSpeech
 }
-
