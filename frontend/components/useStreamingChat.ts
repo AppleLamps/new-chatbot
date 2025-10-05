@@ -56,6 +56,12 @@ export function useStreamingChat(apiUrl: string = process.env.NEXT_PUBLIC_API_BA
     const data = await response.json()
 
     if (!response.ok) {
+      console.error('Image generation request failed', {
+        status: response.status,
+        statusText: response.statusText,
+        url: response.url,
+        body: data
+      })
       throw new Error(data.error || 'Failed to generate image')
     }
 
@@ -193,6 +199,12 @@ export function useStreamingChat(apiUrl: string = process.env.NEXT_PUBLIC_API_BA
     const data = await response.json()
 
     if (!response.ok) {
+      console.error('Chat request failed', {
+        status: response.status,
+        statusText: response.statusText,
+        url: response.url,
+        body: data
+      })
       throw new Error(data.error || 'Failed to get response')
     }
 
@@ -260,6 +272,12 @@ export function useStreamingChat(apiUrl: string = process.env.NEXT_PUBLIC_API_BA
 
     if (!response.ok) {
       const data = await response.json()
+      console.error('Streaming request failed', {
+        status: response.status,
+        statusText: response.statusText,
+        url: response.url,
+        body: data
+      })
       throw new Error(data.error || 'Failed to start streaming')
     }
 
@@ -296,6 +314,9 @@ export function useStreamingChat(apiUrl: string = process.env.NEXT_PUBLIC_API_BA
 
             try {
               const parsed = JSON.parse(data)
+              if (parsed.error) {
+                console.error('Streaming server error:', parsed.error)
+              }
               if (parsed.content) {
                 accumulatedContent += parsed.content
                 setState(prev => {

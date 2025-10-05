@@ -29,7 +29,12 @@ async function sendChatRequest(messages, model, options = {}) {
 
   // Add web search plugin if enabled (not supported during image generation)
   if (enableWebSearch && !enableImageGeneration) {
-    requestPayload.plugins = [{ id: 'web' }]
+    requestPayload.plugins = {
+      web: {
+        enabled: true,
+        max_results: 5
+      }
+    }
   }
   if (enableWebSearch && enableImageGeneration) {
     console.warn('Web search plugin is ignored when image generation is enabled')
@@ -85,7 +90,12 @@ async function sendStreamRequest(messages, model, options = {}) {
 
   // Add web search plugin if enabled
   if (enableWebSearch && !enableImageGeneration) {
-    requestPayload.plugins = [{ id: 'web' }]
+    requestPayload.plugins = {
+      web: {
+        enabled: true,
+        max_results: 5
+      }
+    }
   }
 
   // Log request for debugging

@@ -19,11 +19,13 @@ function formatMessagesForOpenRouter(messages, uploadsDir, enableImageGeneration
 
   return messages.map((msg, index) => {
     // Determine if this message should be cached
-    // Cache system messages and early messages with large content (>1000 chars)
+    // Cache system messages, messages with attachments, and early messages with large content
+    // Note: Gemini requires 1028+ tokens (Flash) or 2048+ tokens (Pro), roughly 2000+ characters
     const shouldCache = (
       (msg.role === 'system') || 
-      (index < 3 && msg.content && msg.content.length > 1000) ||
-      (msg.extractedText && msg.extractedText.length > 1000)
+      (msg.attachments && msg.attachments.length > 0) ||  // Always cache messages with files
+      (index < 3 && msg.content && msg.content.length > 2000) ||
+      (msg.extractedText && msg.extractedText.length > 2000)
     )
     
     // If message has attachments (images or documents), format as multimodal content
@@ -38,38 +40,44 @@ function formatMessagesForOpenRouter(messages, uploadsDir, enableImageGeneration
         })
       }
       
-      // Add extracted text from documents (should be cached for large documents)
-      if (msg.extractedText) {
-        contentParts.push({
-          type: 'text',
-          text: `[Uploaded Document Content]\n${msg.extractedText}`
-        })
-      }
+      // Note: We don't add extracted text here because OpenRouter will parse
+      // files directly when sent using the 'file' type. This avoids duplication
+      // and unnecessary token usage.
       
-      // Add image attachments as base64 data URLs
+      // Add attachments (images and documents)
       msg.attachments.forEach(attachment => {
-        if (attachment.mimetype?.startsWith('image/')) {
-          // Convert local file path to base64 data URL for OpenRouter
-          // OpenRouter cannot access localhost URLs, so we need to encode the image
-          const filename = attachment.url.split('/').pop()
-          const filePath = path.join(uploadsDir, filename)
+        const filename = attachment.url.split('/').pop()
+        const filePath = path.join(uploadsDir, filename)
+        
+        try {
+          const fileBuffer = fs.readFileSync(filePath)
+          const base64File = fileBuffer.toString('base64')
+          const mimeType = attachment.mimetype || 'application/octet-stream'
+          const dataUrl = `data:${mimeType};base64,${base64File}`
           
-          try {
-            const imageBuffer = fs.readFileSync(filePath)
-            const base64Image = imageBuffer.toString('base64')
-            const mimeType = attachment.mimetype || 'image/jpeg'
-            const dataUrl = `data:${mimeType};base64,${base64Image}`
-            
+          if (attachment.mimetype?.startsWith('image/')) {
+            // Images use the image_url format
             contentParts.push({
               type: 'image_url',
               image_url: {
                 url: dataUrl
               }
             })
-          } catch (error) {
-            console.error('Error reading image file:', error)
-            // Skip this attachment if file cannot be read
+          } else if (attachment.mimetype === 'application/pdf' || 
+                     attachment.mimetype === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
+                     attachment.mimetype?.startsWith('text/')) {
+            // PDFs and documents use the file format (OpenRouter API spec)
+            contentParts.push({
+              type: 'file',
+              file: {
+                filename: attachment.filename || filename,
+                file_data: dataUrl
+              }
+            })
           }
+        } catch (error) {
+          console.error('Error reading file:', error)
+          // Skip this attachment if file cannot be read
         }
       })
       

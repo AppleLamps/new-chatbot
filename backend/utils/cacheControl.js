@@ -1,9 +1,14 @@
 /**
  * Helper function to add cache control for prompt caching
- * Applies to Anthropic Claude and Google Gemini models
- * OpenAI, Grok, Moonshot AI, Groq, and DeepSeek have automatic caching
  * 
- * @param {Array} contentParts - Array of content parts (text, image_url)
+ * Models requiring explicit cache_control:
+ * - Anthropic Claude: Requires cache_control, 4 breakpoint limit, 5-min TTL
+ * - Google Gemini: Requires cache_control, last breakpoint used, 5-min TTL
+ * 
+ * Models with automatic caching (no action needed):
+ * - OpenAI, Grok, Moonshot AI, Groq, DeepSeek
+ * 
+ * @param {Array} contentParts - Array of content parts (text, image_url, file)
  * @param {boolean} shouldCache - Whether to add cache control
  * @returns {Array} Content parts with cache control added to last text part
  */
