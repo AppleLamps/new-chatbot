@@ -40,9 +40,49 @@ export function useStreamingChat(apiUrl: string = process.env.NEXT_PUBLIC_API_BA
     currentStreamedContent: ''
   })
 
+  const sendImageGenerationMessage = useCallback(async (
+    content: string
+  ) => {
+    const response = await fetch(`${apiUrl}/api/generate-image`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        prompt: content
+      })
+    })
+
+    const data = await response.json()
+
+    if (!response.ok) {
+      throw new Error(data.error || 'Failed to generate image')
+    }
+
+    setState(prev => {
+      const newMessages = [...prev.messages]
+      if (newMessages.length > 0) {
+        const lastIndex = newMessages.length - 1
+        newMessages[lastIndex] = {
+          ...newMessages[lastIndex],
+          content: data.message || (data.images?.length ? 'Here is your generated image.' : ''),
+          images: data.images || []
+        }
+      }
+
+      return {
+        ...prev,
+        messages: newMessages,
+        isLoading: false,
+        isStreaming: false,
+        currentStreamedContent: data.message || ''
+      }
+    })
+  }, [apiUrl])
+
   const sendMessage = useCallback(async (
-    content: string, 
-    useStreaming: boolean = true, 
+    content: string,
+    useStreaming: boolean = true,
     previousMessages?: Message[],
     attachments?: Attachment[],
     enableImageGeneration: boolean = false,
@@ -52,6 +92,8 @@ export function useStreamingChat(apiUrl: string = process.env.NEXT_PUBLIC_API_BA
     if (!content.trim() || state.isLoading) return
 
     const baseMessages = previousMessages !== undefined ? previousMessages : state.messages
+
+    const shouldStream = enableImageGeneration ? false : useStreaming
 
     const userMessage: Message = {
       id: Date.now().toString(),
@@ -72,12 +114,14 @@ export function useStreamingChat(apiUrl: string = process.env.NEXT_PUBLIC_API_BA
       ...prev,
       messages: [...baseMessages, userMessage, assistantMessage],
       isLoading: true,
-      isStreaming: useStreaming,
+      isStreaming: shouldStream,
       currentStreamedContent: ''
     }))
 
     try {
-      if (useStreaming) {
+      if (enableImageGeneration) {
+        await sendImageGenerationMessage(content.trim())
+      } else if (shouldStream) {
         await sendStreamingMessage(content.trim(), baseMessages, attachments, enableImageGeneration, model, enableWebSearch)
       } else {
         await sendRegularMessage(content.trim(), baseMessages, attachments, enableImageGeneration, model, enableWebSearch)
@@ -98,7 +142,7 @@ export function useStreamingChat(apiUrl: string = process.env.NEXT_PUBLIC_API_BA
         }
       })
     }
-  }, [state.isLoading, state.messages, apiUrl])
+  }, [state.isLoading, state.messages, apiUrl, sendImageGenerationMessage])
 
   const sendRegularMessage = async (
     content: string, 
