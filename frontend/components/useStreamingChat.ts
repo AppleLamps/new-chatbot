@@ -93,7 +93,8 @@ export function useStreamingChat(apiUrl: string = process.env.NEXT_PUBLIC_API_BA
     attachments?: Attachment[],
     enableImageGeneration: boolean = false,
     model?: string,
-    enableWebSearch: boolean = false
+    enableWebSearch: boolean = false,
+    systemPrompt?: string
   ) => {
     if (!content.trim() || state.isLoading) return
 
@@ -128,9 +129,9 @@ export function useStreamingChat(apiUrl: string = process.env.NEXT_PUBLIC_API_BA
       if (enableImageGeneration) {
         await sendImageGenerationMessage(content.trim())
       } else if (shouldStream) {
-        await sendStreamingMessage(content.trim(), baseMessages, attachments, enableImageGeneration, model, enableWebSearch)
+        await sendStreamingMessage(content.trim(), baseMessages, attachments, enableImageGeneration, model, enableWebSearch, systemPrompt)
       } else {
-        await sendRegularMessage(content.trim(), baseMessages, attachments, enableImageGeneration, model, enableWebSearch)
+        await sendRegularMessage(content.trim(), baseMessages, attachments, enableImageGeneration, model, enableWebSearch, systemPrompt)
       }
     } catch (error) {
       console.error('Error sending message:', error)
@@ -151,12 +152,13 @@ export function useStreamingChat(apiUrl: string = process.env.NEXT_PUBLIC_API_BA
   }, [state.isLoading, state.messages, apiUrl, sendImageGenerationMessage])
 
   const sendRegularMessage = async (
-    content: string, 
-    baseMessages: Message[], 
+    content: string,
+    baseMessages: Message[],
     attachments?: Attachment[],
     enableImageGeneration: boolean = false,
     model?: string,
-    enableWebSearch: boolean = false
+    enableWebSearch: boolean = false,
+    systemPrompt?: string
   ) => {
     const lastUserMessage: any = {
       role: 'user' as const,
@@ -175,6 +177,10 @@ export function useStreamingChat(apiUrl: string = process.env.NEXT_PUBLIC_API_BA
 
     const requestBody: any = {
       messages: messagesToSend
+    }
+
+    if (systemPrompt) {
+      requestBody.systemPrompt = systemPrompt
     }
 
     if (enableImageGeneration) {
@@ -225,12 +231,13 @@ export function useStreamingChat(apiUrl: string = process.env.NEXT_PUBLIC_API_BA
   }
 
   const sendStreamingMessage = async (
-    content: string, 
+    content: string,
     baseMessages: Message[],
     attachments?: Attachment[],
     enableImageGeneration: boolean = false,
     model?: string,
-    enableWebSearch: boolean = false
+    enableWebSearch: boolean = false,
+    systemPrompt?: string
   ) => {
     const lastUserMessage: any = {
       role: 'user' as const,
@@ -249,6 +256,10 @@ export function useStreamingChat(apiUrl: string = process.env.NEXT_PUBLIC_API_BA
 
     const requestBody: any = {
       messages: messagesToSend
+    }
+
+    if (systemPrompt) {
+      requestBody.systemPrompt = systemPrompt
     }
 
     if (enableImageGeneration) {
@@ -282,8 +293,7 @@ export function useStreamingChat(apiUrl: string = process.env.NEXT_PUBLIC_API_BA
     }
 
     const reader = response.body?.getReader()
-    // Use stream: true to handle multi-byte UTF-8 characters split across chunks
-    const decoder = new TextDecoder('utf-8', { stream: true })
+    const decoder = new TextDecoder('utf-8')
 
     if (!reader) {
       throw new Error('No response body')

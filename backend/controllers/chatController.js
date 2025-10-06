@@ -6,18 +6,20 @@ const { formatMessagesForOpenRouter } = require('../utils/messageFormatter')
  */
 async function handleChat(req, res, uploadsDir) {
   try {
-    const { 
-      messages, 
-      model = 'anthropic/claude-3-haiku:beta', 
-      enableImageGeneration = false, 
-      enableWebSearch = false 
+    const {
+      messages,
+      model = 'anthropic/claude-3-haiku:beta',
+      enableImageGeneration = false,
+      enableWebSearch = false,
+      systemPrompt
     } = req.body
 
     // Format messages for OpenRouter
     const openRouterMessages = formatMessagesForOpenRouter(
-      messages, 
-      uploadsDir, 
-      enableImageGeneration
+      messages,
+      uploadsDir,
+      enableImageGeneration,
+      systemPrompt
     )
 
     // Make request to OpenRouter
@@ -79,11 +81,12 @@ async function handleChat(req, res, uploadsDir) {
  */
 async function handleStreamChat(req, res, uploadsDir) {
   try {
-    const { 
-      messages, 
-      model = 'anthropic/claude-3-haiku:beta', 
-      enableImageGeneration = false, 
-      enableWebSearch = false 
+    const {
+      messages,
+      model = 'anthropic/claude-3-haiku:beta',
+      enableImageGeneration = false,
+      enableWebSearch = false,
+      systemPrompt
     } = req.body
 
     // Set up SSE headers
@@ -95,9 +98,10 @@ async function handleStreamChat(req, res, uploadsDir) {
 
     // Format messages for OpenRouter
     const openRouterMessages = formatMessagesForOpenRouter(
-      messages, 
-      uploadsDir, 
-      enableImageGeneration
+      messages,
+      uploadsDir,
+      enableImageGeneration,
+      systemPrompt
     )
 
     // If image generation is enabled, most providers do not support streaming

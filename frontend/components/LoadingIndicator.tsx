@@ -29,28 +29,42 @@ export default function LoadingIndicator({ showSkeleton = true, className = '' }
     return (
       <div className={className}>
         <SkeletonLoader variant="message" />
-        <div className="flex justify-start mt-2">
-          <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-brand-50 dark:bg-brand-600/10 border border-brand-100/80 dark:border-white/10">
-            <svg 
-              className="w-4 h-4 text-brand-700 dark:text-brand-600 animate-spin" 
-              fill="none" 
-              viewBox="0 0 24 24"
-            >
-              <circle 
-                className="opacity-25" 
-                cx="12" 
-                cy="12" 
-                r="10" 
-                stroke="currentColor" 
-                strokeWidth="4"
-              />
-              <path 
-                className="opacity-75" 
-                fill="currentColor" 
-                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-              />
-            </svg>
-            <span className="text-sm text-blue-700 dark:text-blue-300 font-medium">
+        <div className="flex justify-start mt-2 animate-fade-in">
+          <div className="flex items-center gap-3 px-4 py-2.5 rounded-xl glass-light border border-brand-200/60 dark:border-brand-600/30 shadow-elev-2">
+            {/* Elegant gradient spinner */}
+            <div className="relative w-5 h-5">
+              {/* Outer spinning ring with gradient */}
+              <svg
+                className="w-5 h-5 animate-spin-smooth"
+                viewBox="0 0 24 24"
+                fill="none"
+              >
+                <circle
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="url(#gradient)"
+                  strokeWidth="3"
+                  strokeLinecap="round"
+                  strokeDasharray="60 40"
+                  className="opacity-90"
+                />
+                <defs>
+                  <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" className="text-brand-600" stopColor="currentColor" />
+                    <stop offset="50%" className="text-accent-purple-600" stopColor="currentColor" />
+                    <stop offset="100%" className="text-accent-blue-600" stopColor="currentColor" />
+                  </linearGradient>
+                </defs>
+              </svg>
+
+              {/* Inner pulsing dot */}
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="w-2 h-2 rounded-full bg-gradient-to-br from-brand-600 to-accent-purple-600 animate-pulse-soft"></div>
+              </div>
+            </div>
+
+            <span className="text-sm text-brand-700 dark:text-brand-300 font-medium">
               {loadingMessages[messageIndex]}
             </span>
           </div>
@@ -61,12 +75,13 @@ export default function LoadingIndicator({ showSkeleton = true, className = '' }
 
   return (
     <div className={`flex justify-start ${className}`}>
-      <div className="bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 px-4 py-3 rounded-lg shadow-sm border border-gray-300 dark:border-gray-600">
-        <div className="flex space-x-1 items-center">
-          <span className="text-sm mr-2">{loadingMessages[messageIndex]}</span>
-          <div className="w-2 h-2 bg-gray-500 dark:bg-gray-400 rounded-full animate-bounce"></div>
-          <div className="w-2 h-2 bg-gray-500 dark:bg-gray-400 rounded-full animate-bounce-delay-1"></div>
-          <div className="w-2 h-2 bg-gray-500 dark:bg-gray-400 rounded-full animate-bounce-delay-2"></div>
+      <div className="glass-light border border-neutral-300/60 dark:border-neutral-600/50 px-4 py-3 rounded-xl shadow-elev-2 animate-fade-in">
+        <div className="flex space-x-2 items-center">
+          <span className="text-sm mr-2 text-neutral-700 dark:text-neutral-300 font-medium">{loadingMessages[messageIndex]}</span>
+          {/* Elegant bouncing dots with gradient colors */}
+          <div className="w-2 h-2 rounded-full bg-gradient-to-br from-brand-600 to-brand-700 animate-bounce"></div>
+          <div className="w-2 h-2 rounded-full bg-gradient-to-br from-accent-purple-600 to-accent-purple-700 animate-bounce-delay-1"></div>
+          <div className="w-2 h-2 rounded-full bg-gradient-to-br from-accent-blue-600 to-accent-blue-700 animate-bounce-delay-2"></div>
         </div>
       </div>
     </div>

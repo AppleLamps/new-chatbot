@@ -3,7 +3,20 @@ import './globals.css'
 import { Inter } from 'next/font/google'
 import { ToastProvider } from '../components/ToastProvider'
 
-const inter = Inter({ subsets: ['latin'], variable: '--font-inter' })
+// Configure Geist font with multiple weights for better typography
+const geist = Inter({
+  subsets: ['latin'],
+  variable: '--font-geist',
+  weight: ['300', '400', '500', '600', '700'],
+  display: 'swap', // Add font-display: swap for performance
+})
+
+// Keep Inter as fallback
+const inter = Inter({
+  subsets: ['latin'],
+  variable: '--font-inter',
+  display: 'swap',
+})
 
 export const metadata: Metadata = {
   title: 'LampChat',
@@ -16,8 +29,8 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" className={inter.variable}>
-      <body className="min-h-screen font-sans antialiased bg-gradient-to-b from-gray-50 to-white dark:from-gray-950 dark:to-gray-900 transition-colors">
+    <html lang="en" className={`${geist.variable} ${inter.variable}`}>
+      <body className="min-h-screen font-sans antialiased bg-gradient-to-b from-neutral-50 to-white dark:from-neutral-950 dark:to-neutral-900 transition-colors">
         <ToastProvider>
           {children}
         </ToastProvider>

@@ -161,33 +161,35 @@ export default function FileUpload({ onFileUploaded, onError }: FileUploadProps)
         title="Upload file"
         aria-label="Upload file"
       />
-      
+
       <button
+        type="button"
         onClick={handleClick}
         disabled={isUploading}
-        className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        className="btn-ghost p-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 ease-out hover:scale-110 active:scale-95 disabled:hover:scale-100"
         title="Upload image or document"
+        aria-label="Upload image or document"
         onDragEnter={handleDragEnter}
         onDragLeave={handleDragLeave}
         onDragOver={handleDragOver}
         onDrop={handleDrop}
       >
         {isUploading ? (
-          <svg className="w-5 h-5 text-gray-600 dark:text-gray-400 animate-spin" fill="none" viewBox="0 0 24 24">
+          <svg className="w-5 h-5 text-neutral-600 dark:text-neutral-400 animate-spin-smooth" fill="none" viewBox="0 0 24 24">
             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
           </svg>
         ) : (
-          <svg className="w-5 h-5 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-5 h-5 text-neutral-600 dark:text-neutral-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
           </svg>
         )}
       </button>
 
       {isDragging && (
-        <div className="fixed inset-0 bg-brand-600/20 z-50 flex items-center justify-center pointer-events-none">
-          <div className="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-lg border-2 border-brand-600 dark:border-brand-600/70">
-            <p className="text-lg font-medium text-gray-800 dark:text-gray-200">Drop file to upload</p>
+        <div className="fixed inset-0 bg-brand-600/20 backdrop-blur-sm z-50 flex items-center justify-center pointer-events-none transition-opacity duration-300 animate-fade-in">
+          <div className="glass-light p-8 rounded-2xl shadow-elev-4 border-2 border-brand-600 dark:border-brand-600/70 animate-slide-up">
+            <p className="text-lg font-medium text-neutral-800 dark:text-neutral-200">Drop file to upload</p>
           </div>
         </div>
       )}

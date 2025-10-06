@@ -2,6 +2,51 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Smooth Scroll Behavior */
+html {
+  scroll-behavior: smooth;
+}
+
+/* CSS Custom Properties for Dynamic Theming */
+:root {
+  /* Neutral colors */
+  --color-bg-primary: 255 255 255;
+  --color-bg-secondary: 250 250 250;
+  --color-bg-tertiary: 245 245 245;
+  --color-border-primary: 229 229 229;
+  --color-border-secondary: 212 212 212;
+  --color-text-primary: 23 23 23;
+  --color-text-secondary: 64 64 64;
+  --color-text-tertiary: 115 115 115;
+
+  /* Brand colors */
+  --color-brand-primary: 79 70 229;
+  --color-brand-hover: 67 56 202;
+  --color-brand-light: 238 242 255;
+
+  /* Accent colors */
+  --color-accent-blue: 37 99 235;
+  --color-accent-purple: 147 51 234;
+  --color-accent-emerald: 5 150 105;
+}
+
+.dark {
+  /* Dark mode colors */
+  --color-bg-primary: 23 23 23;
+  --color-bg-secondary: 31 31 31;
+  --color-bg-tertiary: 38 38 38;
+  --color-border-primary: 64 64 64;
+  --color-border-secondary: 82 82 82;
+  --color-text-primary: 250 250 250;
+  --color-text-secondary: 212 212 212;
+  --color-text-tertiary: 163 163 163;
+
+  /* Brand colors in dark mode */
+  --color-brand-primary: 99 102 241;
+  --color-brand-hover: 129 140 248;
+  --color-brand-light: 30 27 75;
+}
+
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
@@ -9,37 +54,129 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  line-height: 1.6;
+  /* Increased from default 1.5 for better readability */
+  letter-spacing: 0.01em;
+  /* Subtle letter spacing for body text */
 }
 
-/* Custom scrollbar */
+/* Typography Hierarchy Utilities */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  letter-spacing: -0.01em;
+  /* Tighter letter spacing for headings */
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+/* Display text - Large, attention-grabbing text */
+.text-display {
+  font-size: 2.5rem;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+
+/* Title text - Page/section titles */
+.text-title {
+  font-size: 2rem;
+  font-weight: 600;
+  line-height: 1.25;
+  letter-spacing: -0.015em;
+}
+
+/* Heading text - Subsection headings */
+.text-heading {
+  font-size: 1.5rem;
+  font-weight: 600;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+}
+
+/* Subheading text - Smaller headings */
+.text-subheading {
+  font-size: 1.25rem;
+  font-weight: 500;
+  line-height: 1.4;
+  letter-spacing: -0.005em;
+}
+
+/* Body text - Standard paragraph text */
+.text-body {
+  font-size: 1rem;
+  font-weight: 400;
+  line-height: 1.6;
+  letter-spacing: 0.01em;
+}
+
+/* Body small - Smaller body text */
+.text-body-sm {
+  font-size: 0.875rem;
+  font-weight: 400;
+  line-height: 1.5;
+  letter-spacing: 0.01em;
+}
+
+/* Caption text - Small supporting text */
+.text-caption {
+  font-size: 0.75rem;
+  font-weight: 400;
+  line-height: 1.4;
+  letter-spacing: 0.015em;
+}
+
+/* Label text - Form labels, UI labels */
+.text-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.4;
+  letter-spacing: 0.005em;
+}
+
+/* Custom scrollbar with elegant styling */
 ::-webkit-scrollbar {
   width: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #f1f1f1;
+  background: rgb(245 245 245);
+  /* neutral-100 */
 }
 
 .dark ::-webkit-scrollbar-track {
-  background: #1f2937;
+  background: rgb(23 23 23);
+  /* neutral-900 */
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #c1c1c1;
+  background: rgb(212 212 212);
+  /* neutral-300 */
   border-radius: 4px;
+  transition: background 0.2s ease;
 }
 
 .dark ::-webkit-scrollbar-thumb {
-  background: #4b5563;
+  background: rgb(82 82 82);
+  /* neutral-600 */
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #a1a1a1;
+  background: rgb(163 163 163);
+  /* neutral-400 */
 }
 
 .dark ::-webkit-scrollbar-thumb:hover {
-  background: #6b7280;
+  background: rgb(115 115 115);
+  /* neutral-500 */
 }
+
+/* ============================================
+   ANIMATION UTILITIES - Micro-interactions
+   ============================================ */
 
 /* Custom animation delays for bounce effect */
 .animate-bounce-delay-1 {
@@ -52,12 +189,29 @@ body {
   animation-delay: 0.2s;
 }
 
+/* Fade In Animation */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.4s ease-out;
+  will-change: opacity;
+}
+
 /* Fade in animation for messages */
 @keyframes fadeInUp {
   from {
     opacity: 0;
     transform: translateY(10px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -71,19 +225,50 @@ body {
   transform: translateZ(0);
 }
 
-/* Simple fade in for action buttons */
-@keyframes fadeIn {
+/* Message bubble animation helpers */
+.message-animate {
+  opacity: 0;
+  transform: translateY(10px);
+  animation: fadeInUp 0.4s ease-out forwards;
+}
+
+.message-animated {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.message-delay-0 {
+  animation-delay: 0ms;
+}
+
+.message-delay-1 {
+  animation-delay: 50ms;
+}
+
+.message-delay-2 {
+  animation-delay: 100ms;
+}
+
+.message-delay-3 {
+  animation-delay: 150ms;
+}
+
+/* Slide Up Animation */
+@keyframes slideUp {
   from {
     opacity: 0;
+    transform: translateY(20px);
   }
+
   to {
     opacity: 1;
+    transform: translateY(0);
   }
 }
 
-.animate-fade-in {
-  animation: fadeIn 0.4s ease-out;
-  will-change: opacity;
+.animate-slide-up {
+  animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: transform, opacity;
 }
 
 /* Smooth sidebar collapse animation */
@@ -92,6 +277,7 @@ body {
     opacity: 0;
     transform: translateX(-10px);
   }
+
   to {
     opacity: 1;
     transform: translateX(0);
@@ -102,11 +288,87 @@ body {
   animation: slideIn 0.3s ease-out;
 }
 
+/* Bounce Animation */
+@keyframes bounce {
+
+  0%,
+  100% {
+    transform: translateY(0);
+    animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
+  }
+
+  50% {
+    transform: translateY(-25%);
+    animation-timing-function: cubic-bezier(0, 0, 0.2, 1);
+  }
+}
+
+.animate-bounce {
+  animation: bounce 1s infinite;
+}
+
+/* Smooth Spin Animation - For elegant spinners */
+@keyframes spin-smooth {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin-smooth {
+  animation: spin-smooth 1.5s linear infinite;
+  will-change: transform;
+}
+
+/* Bounce Complete Animation - Subtle scale bounce when streaming completes */
+@keyframes bounceComplete {
+  0% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.02);
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}
+
+.animate-bounce-complete {
+  animation: bounceComplete 0.4s ease-out;
+}
+
+/* Pulse Animation */
+@keyframes pulse {
+
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 0.9;
+    transform: scale(1.05);
+  }
+}
+
+.animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
 /* Pulse animation for active elements */
 @keyframes pulse-soft {
-  0%, 100% {
+
+  0%,
+  100% {
     opacity: 1;
   }
+
   50% {
     opacity: 0.8;
   }
@@ -116,17 +378,260 @@ body {
   animation: pulse-soft 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
+/* Pulse ring animation for status indicators */
+@keyframes pulse-ring {
+  0% {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+
+  100% {
+    transform: scale(2);
+    opacity: 0;
+  }
+}
+
+.animate-pulse-ring {
+  animation: pulse-ring 1.5s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+/* Shimmer Animation - For loading states */
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.animate-shimmer {
+  animation: shimmer 2s infinite linear;
+  will-change: transform;
+}
+
+/* Alternative shimmer with background position for standalone use */
+@keyframes shimmerBg {
+  0% {
+    background-position: -1000px 0;
+  }
+
+  100% {
+    background-position: 1000px 0;
+  }
+}
+
+.animate-shimmer-bg {
+  animation: shimmerBg 2s infinite linear;
+  background: linear-gradient(to right,
+      transparent 0%,
+      rgba(255, 255, 255, 0.3) 50%,
+      transparent 100%);
+  background-size: 1000px 100%;
+  will-change: background-position;
+}
+
+.dark .animate-shimmer-bg {
+  background: linear-gradient(to right,
+      transparent 0%,
+      rgba(255, 255, 255, 0.1) 50%,
+      transparent 100%);
+  background-size: 1000px 100%;
+}
+
 @layer components {
+
+  /* Glass-morphism Effects */
+  .glass {
+    @apply backdrop-blur-md bg-white/80 dark:bg-neutral-900/80 border border-white/20 dark:border-neutral-700/30 shadow-glass transition-all duration-200;
+  }
+
+  .glass-light {
+    @apply backdrop-blur-lg bg-white/60 dark:bg-neutral-800/40 border border-neutral-200/50 dark:border-neutral-700/40 shadow-glass transition-all duration-200;
+  }
+
+  .glass-dark {
+    @apply backdrop-blur-md bg-neutral-900/70 dark:bg-neutral-950/80 border border-neutral-700/40 dark:border-neutral-800/50 shadow-glass-lg transition-all duration-200;
+  }
+
+  .glass-border {
+    @apply border border-white/30 dark:border-neutral-700/40;
+  }
+
+  /* Enhanced card with glass effect */
   .card {
-    @apply rounded-2xl border border-black/5 dark:border-white/10 bg-white/70 dark:bg-gray-800/60 backdrop-blur-sm shadow-sm;
+    @apply rounded-2xl border border-neutral-200/60 dark:border-neutral-700/40 bg-white/90 dark:bg-neutral-800/70 backdrop-blur-sm shadow-elev-2 transition-all duration-200;
   }
+
+  .card-glass {
+    @apply rounded-2xl glass shadow-elev-3;
+  }
+
+  /* Chip/Badge components */
   .chip {
-    @apply rounded-full px-3 py-1.5 text-sm border border-black/10 dark:border-white/10 bg-white/60 dark:bg-white/5 hover:bg-white/80 dark:hover:bg-white/10 transition;
+    @apply rounded-full px-3 py-1.5 text-sm border border-neutral-300/60 dark:border-neutral-600/40 bg-white/70 dark:bg-neutral-800/50 hover:bg-white/90 dark:hover:bg-neutral-700/60 backdrop-blur-sm transition-all duration-200 ease-out;
   }
+
+  /* Button variants */
   .btn-ghost {
-    @apply rounded-lg p-2 border border-transparent hover:border-black/10 dark:hover:border-white/10 bg-transparent transition;
+    @apply rounded-lg p-2 border border-transparent hover:border-neutral-300/50 dark:hover:border-neutral-600/50 hover:bg-neutral-100/80 dark:hover:bg-neutral-800/60 bg-transparent transition-all duration-200 ease-out;
   }
+
   .btn-primary {
-    @apply rounded-lg bg-brand-600 hover:bg-brand-700 text-white shadow-elev-1 transition;
+    @apply rounded-lg bg-brand-600 hover:bg-brand-700 text-white shadow-elev-2 hover:shadow-elev-3 transition-all duration-200 ease-out;
   }
+
+  .btn-glass {
+    @apply rounded-lg glass hover:bg-white/90 dark:hover:bg-neutral-800/90 transition-all duration-200 ease-out;
+  }
+}
+
+/* ============================================
+   STATE TRANSITIONS - Smooth interactions
+   ============================================ */
+
+/* Button transitions */
+button {
+  @apply transition-all duration-200 ease-out;
+}
+
+/* Input and textarea transitions */
+input,
+textarea,
+select {
+  @apply transition-all duration-200 ease-in-out;
+}
+
+/* Dropdown/Select transitions */
+select {
+  @apply transition-all duration-300 ease-out;
+}
+
+/* Modal and overlay transitions */
+[role="dialog"],
+.modal,
+.overlay {
+  @apply transition-opacity duration-300;
+}
+
+/* ============================================
+   FOCUS STATES - Accessibility & Visibility
+   ============================================ */
+
+/* Enhanced focus states with smooth transitions */
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible,
+a:focus-visible,
+[role="button"]:focus-visible,
+[tabindex]:focus-visible {
+  @apply outline-none ring-2 ring-brand-600 ring-offset-2 ring-offset-white dark:ring-offset-neutral-900 transition-shadow duration-200 ease-out;
+}
+
+/* Stronger focus for primary actions */
+.btn-primary:focus-visible,
+button[type="submit"]:focus-visible {
+  @apply ring-2 ring-brand-500 ring-offset-2 shadow-elev-3;
+}
+
+/* Focus for glass elements */
+.glass:focus-visible,
+.glass-light:focus-visible,
+.glass-dark:focus-visible {
+  @apply ring-2 ring-brand-600/60 ring-offset-2;
+}
+
+/* Focus for interactive cards */
+.card:focus-visible,
+.chip:focus-visible {
+  @apply ring-2 ring-brand-600/50 ring-offset-2 shadow-elev-3;
+}
+
+/* Focus for danger/destructive actions */
+button.bg-red-500:focus-visible,
+button.bg-red-600:focus-visible {
+  @apply ring-2 ring-red-500 ring-offset-2;
+}
+
+/* Focus for disabled elements (no ring) */
+button:disabled:focus-visible,
+input:disabled:focus-visible,
+textarea:disabled:focus-visible,
+select:disabled:focus-visible {
+  @apply ring-0 ring-offset-0;
+}
+
+/* Skip link for keyboard navigation */
+.skip-link {
+  @apply absolute -top-full left-0 bg-brand-600 text-white px-4 py-2 rounded-br-lg z-50 transition-all duration-200;
+}
+
+.skip-link:focus {
+  @apply top-0;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+
+  button:focus-visible,
+  input:focus-visible,
+  textarea:focus-visible,
+  select:focus-visible,
+  a:focus-visible {
+    @apply ring-4 ring-brand-700 dark:ring-brand-400;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+
+  button:focus-visible,
+  input:focus-visible,
+  textarea:focus-visible,
+  select:focus-visible,
+  a:focus-visible {
+    transition: none;
+  }
+}
+
+/* ============================================
+   CODE BLOCK ENHANCEMENTS
+   ============================================ */
+
+/* Code block wrapper for enhanced styling */
+.code-block-wrapper {
+  @apply relative overflow-hidden rounded-b-xl;
+}
+
+/* Code line hover effect */
+.code-line {
+  @apply transition-colors duration-150;
+}
+
+.code-line:hover {
+  @apply bg-neutral-800/50;
+}
+
+/* Line numbers styling */
+.code-block-wrapper .linenumber {
+  @apply select-none text-neutral-500;
+}
+
+/* Scrollbar styling for code blocks */
+.code-block-wrapper pre::-webkit-scrollbar {
+  height: 8px;
+}
+
+.code-block-wrapper pre::-webkit-scrollbar-track {
+  @apply bg-neutral-900;
+}
+
+.code-block-wrapper pre::-webkit-scrollbar-thumb {
+  @apply bg-neutral-700 rounded;
+}
+
+.code-block-wrapper pre::-webkit-scrollbar-thumb:hover {
+  @apply bg-neutral-600;
 }
