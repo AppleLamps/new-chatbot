@@ -282,7 +282,8 @@ export function useStreamingChat(apiUrl: string = process.env.NEXT_PUBLIC_API_BA
     }
 
     const reader = response.body?.getReader()
-    const decoder = new TextDecoder()
+    // Use stream: true to handle multi-byte UTF-8 characters split across chunks
+    const decoder = new TextDecoder('utf-8', { stream: true })
 
     if (!reader) {
       throw new Error('No response body')
@@ -291,64 +292,106 @@ export function useStreamingChat(apiUrl: string = process.env.NEXT_PUBLIC_API_BA
     let accumulatedContent = ''
     let generatedImages: GeneratedImage[] = []
     let isDone = false
+    let buffer = ''
+
+    // Batch updates to reduce re-renders and improve performance
+    let pendingUpdate = false
+    let updateTimeout: NodeJS.Timeout | null = null
+
+    const flushUpdate = () => {
+      if (pendingUpdate) {
+        setState(prev => {
+          const newMessages = [...prev.messages]
+          newMessages[newMessages.length - 1].content = accumulatedContent
+          if (generatedImages.length > 0) {
+            newMessages[newMessages.length - 1].images = generatedImages
+          }
+          return {
+            ...prev,
+            messages: newMessages,
+            currentStreamedContent: accumulatedContent,
+            isStreaming: !isDone
+          }
+        })
+        pendingUpdate = false
+      }
+    }
+
+    const scheduleUpdate = () => {
+      pendingUpdate = true
+      if (updateTimeout) {
+        clearTimeout(updateTimeout)
+      }
+      // Batch updates every 50ms for smooth rendering without lag
+      updateTimeout = setTimeout(flushUpdate, 50)
+    }
 
     const processStream = async () => {
-      while (!isDone) {
-        const { done, value } = await reader.read()
+      try {
+        while (!isDone) {
+          const { done, value } = await reader.read()
 
-        if (done) {
-          isDone = true
-          break
-        }
+          if (done) {
+            isDone = true
+            break
+          }
 
-        const chunk = decoder.decode(value)
-        const lines = chunk.split('\n')
+          // Decode chunk with streaming support for partial UTF-8 sequences
+          const chunk = decoder.decode(value, { stream: true })
+          buffer += chunk
 
-        for (const line of lines) {
-          if (line.startsWith('data: ')) {
-            const data = line.slice(6)
-            if (data === '{"done":true}') {
-              isDone = true
-              break
+          // Process complete lines
+          const lines = buffer.split('\n')
+          // Keep the last incomplete line in the buffer
+          buffer = lines.pop() || ''
+
+          for (const line of lines) {
+            // Handle SSE data events
+            if (line.startsWith('data: ')) {
+              const data = line.slice(6).trim()
+
+              // Skip empty data
+              if (!data) continue
+
+              if (data === '{"done":true}') {
+                isDone = true
+                break
+              }
+
+              try {
+                const parsed = JSON.parse(data)
+
+                if (parsed.error) {
+                  console.error('Streaming server error:', parsed.error)
+                }
+
+                if (parsed.content) {
+                  accumulatedContent += parsed.content
+                  scheduleUpdate()
+                }
+
+                if (parsed.images) {
+                  generatedImages = parsed.images
+                  scheduleUpdate()
+                }
+              } catch (e) {
+                // Skip invalid JSON (could be SSE comments)
+              }
             }
-
-            try {
-              const parsed = JSON.parse(data)
-              if (parsed.error) {
-                console.error('Streaming server error:', parsed.error)
-              }
-              if (parsed.content) {
-                accumulatedContent += parsed.content
-                setState(prev => {
-                  const newMessages = [...prev.messages]
-                  newMessages[newMessages.length - 1].content = accumulatedContent
-                  if (generatedImages.length > 0) {
-                    newMessages[newMessages.length - 1].images = generatedImages
-                  }
-                  return {
-                    ...prev,
-                    messages: newMessages,
-                    currentStreamedContent: accumulatedContent,
-                    isStreaming: !isDone
-                  }
-                })
-              }
-              if (parsed.images) {
-                generatedImages = parsed.images
-                setState(prev => {
-                  const newMessages = [...prev.messages]
-                  newMessages[newMessages.length - 1].images = generatedImages
-                  return {
-                    ...prev,
-                    messages: newMessages
-                  }
-                })
-              }
-            } catch (e) {
-              // Skip invalid JSON
+            // Handle SSE comments (used by OpenRouter to prevent timeouts)
+            else if (line.startsWith(':')) {
+              // Ignore comments per SSE spec
+              continue
             }
           }
         }
+      } finally {
+        // Clear any pending timeout
+        if (updateTimeout) {
+          clearTimeout(updateTimeout)
+        }
+        // Flush final update
+        flushUpdate()
       }
 
       setState(prev => ({

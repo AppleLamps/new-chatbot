@@ -1,6 +1,10 @@
 # Dependencies
 node_modules/
 **/node_modules/
+openrouter-api-docs/
+**/openrouter-api-docs/
+
+
 
 # Environment variables
 .env

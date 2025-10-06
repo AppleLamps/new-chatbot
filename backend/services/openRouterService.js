@@ -121,25 +121,41 @@ async function sendStreamRequest(messages, model, options = {}) {
 
 /**
  * Send a request to generate follow-up suggestions
- * 
+ *
  * @param {Array} messages - Recent conversation messages
  * @returns {Promise<Array>} Array of suggestion strings
  */
 async function generateSuggestions(messages) {
-  // Create context from last few messages
-  const recentMessages = messages.slice(-4) // Use last 4 messages for context
+  // Create context from last few messages (use more context for better suggestions)
+  const recentMessages = messages.slice(-6) // Use last 6 messages for better context
   const contextMessage = {
     role: 'system',
-    content: 'Based on the conversation, generate 3-4 short follow-up questions or suggestions that would be natural next things for the user to ask. Keep them concise and relevant. Return as a JSON array of strings.'
+    content: `You are an expert at generating intelligent, contextual follow-up suggestions for conversations.
+
+Analyze the conversation carefully and generate 3-4 follow-up suggestions that are:
+1. **Highly relevant** - Directly related to what was just discussed
+2. **Natural progressions** - Logical next steps in the conversation flow
+3. **Diverse** - Cover different angles (deeper dive, practical application, related topics, clarification)
+4. **Actionable** - Phrased as clear questions or requests the user would actually want to ask
+5. **Concise** - Keep each suggestion under 60 characters when possible
+
+Consider:
+- What deeper questions might arise from the assistant's response?
+- What practical applications or examples might the user want?
+- What related topics might naturally follow?
+- What clarifications or elaborations would be valuable?
+
+Return ONLY a valid JSON array of 3-4 strings, nothing else. Example format:
+["How does this work in practice?", "Can you show an example?", "What are the limitations?"]`
   }
 
   const response = await axios.post(
     `${OPENROUTER_CONFIG.baseUrl}/chat/completions`,
     {
-      model: OPENROUTER_CONFIG.defaultModel,
+      model: 'openai/gpt-5-chat', // Use GPT-5 for smarter suggestions
       messages: [contextMessage, ...recentMessages.map(msg => ({ role: msg.role, content: msg.content }))],
-      max_tokens: 200,
-      temperature: 0.7
+      max_tokens: 300, // Increased for better reasoning
+      temperature: 0.8 // Slightly higher for more creative suggestions
     },
     {
       headers: {

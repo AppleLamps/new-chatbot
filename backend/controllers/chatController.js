@@ -129,16 +129,33 @@ async function handleStreamChat(req, res, uploadsDir) {
 
     let buffer = ''
     let isCompleted = false
+    let contentBuffer = ''
+    let lastFlushTime = Date.now()
+    const FLUSH_INTERVAL_MS = 50 // Batch updates every 50ms for smoother streaming
+
+    const flushContentBuffer = () => {
+      if (contentBuffer) {
+        res.write(`data: ${JSON.stringify({ content: contentBuffer })}\n\n`)
+        contentBuffer = ''
+        lastFlushTime = Date.now()
+      }
+    }
 
     response.data.on('data', (chunk) => {
       buffer += chunk.toString()
       const lines = buffer.split('\n')
-      buffer = lines.pop() // Keep incomplete line in buffer
+      buffer = lines.pop() || '' // Keep incomplete line in buffer
 
       for (const line of lines) {
+        // Handle SSE data events
         if (line.startsWith('data: ')) {
-          const data = line.slice(6)
+          const data = line.slice(6).trim()
+
+          // Skip empty data
+          if (!data) continue
+
           if (data === '[DONE]') {
+            flushContentBuffer() // Flush any remaining content
             isCompleted = true
             res.write(`data: ${JSON.stringify({ done: true })}\n\n`)
             res.end()
@@ -149,24 +166,38 @@ async function handleStreamChat(req, res, uploadsDir) {
             const parsed = JSON.parse(data)
             const delta = parsed.choices?.[0]?.delta?.content
             const images = parsed.choices?.[0]?.delta?.images
-            
+
+            // Buffer content for batched sending
             if (delta) {
-              res.write(`data: ${JSON.stringify({ content: delta })}\n\n`)
+              contentBuffer += delta
+
+              // Flush if enough time has passed or buffer is getting large
+              const timeSinceLastFlush = Date.now() - lastFlushTime
+              if (timeSinceLastFlush >= FLUSH_INTERVAL_MS || contentBuffer.length > 100) {
+                flushContentBuffer()
+              }
             }
-            
-            // Send generated images if present
+
+            // Send generated images immediately (not buffered)
             if (images && images.length > 0) {
+              flushContentBuffer() // Flush any pending content first
               res.write(`data: ${JSON.stringify({ images: images })}\n\n`)
             }
           } catch (e) {
-            // Skip invalid JSON
+            // Skip invalid JSON (could be SSE comments or malformed data)
           }
+        }
+        // Handle SSE comments (OpenRouter sends these to prevent timeouts)
+        else if (line.startsWith(':')) {
+          // Forward comments to client (optional, helps with connection keep-alive)
+          res.write(`${line}\n`)
         }
       }
     })
 
     response.data.on('end', () => {
       if (!isCompleted) {
+        flushContentBuffer() // Flush any remaining buffered content
         res.write(`data: ${JSON.stringify({ done: true })}\n\n`)
         res.end()
       }

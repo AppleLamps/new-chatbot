@@ -203,12 +203,6 @@ export default function Home() {
     }
 
     setAttachments(prev => [...prev, { ...file, url: normalizedUrl }])
-    
-    // If file has extracted text (PDF/DOCX), add it to the input
-    if (file.extractedText) {
-      const fileInfo = `[Uploaded ${file.filename}]\n\n${file.extractedText.slice(0, 2000)}${file.extractedText.length > 2000 ? '...' : ''}`
-      setInput(prev => prev ? `${prev}\n\n${fileInfo}` : fileInfo)
-    }
   }
 
   const handleFileUploadError = (error: string) => {

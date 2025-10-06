@@ -12,7 +12,13 @@ interface ModelSelectorProps {
 }
 
 const MODELS: Model[] = [
+  { id: 'openai/gpt-5', name: 'GPT-5', contextLength: 400000 },
+  { id: 'openai/gpt-5-chat', name: 'GPT-5 Chat', contextLength: 128000 },
+  { id: 'anthropic/claude-sonnet-4.5', name: 'Claude Sonnet 4.5', contextLength: 1000000 },
+  { id: 'anthropic/claude-opus-4.1', name: 'Claude Opus 4.1', contextLength: 200000 },
   { id: 'anthropic/claude-3-haiku:beta', name: 'Claude 3 Haiku (beta)', contextLength: 200000 },
+  { id: 'thedrummer/cydonia-24b-v4.1', name: 'Cydonia 24B v4.1', contextLength: 131072 },
+  { id: 'moonshotai/kimi-k2-0905', name: 'Kimi K2', contextLength: 262144 },
   { id: 'google/gemini-2.5-flash-preview-09-2025', name: 'Gemini 2.5 Flash', contextLength: 1048576 },
   { id: 'google/gemini-2.5-flash-image-preview', name: 'Gemini 2.5 Flash Image Preview', contextLength: 1048576 },
   { id: 'x-ai/grok-4-fast', name: 'Grok-4 Fast', contextLength: 2000000 },
@@ -45,7 +51,7 @@ export default function ModelSelector({ selectedModel, onModelChange }: ModelSel
           </option>
         ))}
       </select>
-      
+
       {/* Custom dropdown icon */}
       <div className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
         <svg className="w-4 h-4 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">

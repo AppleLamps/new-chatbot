@@ -5,6 +5,86 @@ import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism'
 import remarkGfm from 'remark-gfm'
 import FollowUpSuggestions from './FollowUpSuggestions'
 
+// Memoized markdown content to prevent re-parsing on every render
+const MarkdownContent = React.memo(({ content, messageId, onCopyCode, copiedCode }: {
+  content: string
+  messageId: string
+  onCopyCode: (code: string, codeId: string) => void
+  copiedCode: string | null
+}) => {
+  return (
+    <div className="prose prose-sm max-w-none dark:prose-invert prose-pre:bg-gray-950 prose-pre:border prose-pre:border-white/10 prose-code:before:content-[''] prose-code:after:content-['']">
+      <ReactMarkdown
+        remarkPlugins={[remarkGfm]}
+        components={{
+          code(props: any) {
+            const { node, inline, className, children, ...rest } = props
+            const match = /language-(\w+)/.exec(className || '')
+            const codeString = String(children).replace(/\n$/, '')
+            const codeId = `${messageId}-${match?.[1] || 'code'}-${codeString.slice(0, 20)}`
+            const isCopied = copiedCode === codeId
+
+            return !inline && match ? (
+              <div className="relative group">
+                <SyntaxHighlighter
+                  style={vscDarkPlus}
+                  language={match[1]}
+                  PreTag="div"
+                  className="rounded-xl !text-sm"
+                  showLineNumbers={true}
+                  {...rest}
+                >
+                  {codeString}
+                </SyntaxHighlighter>
+                <button
+                  type="button"
+                  onClick={() => onCopyCode(codeString, codeId)}
+                  className="absolute top-2 right-2 p-2 bg-gray-700/90 hover:bg-gray-600 text-gray-300 hover:text-white rounded-lg transition-all duration-200 opacity-0 group-hover:opacity-100 focus:opacity-100"
+                  title={isCopied ? 'Copied!' : 'Copy code'}
+                  aria-label={isCopied ? 'Copied!' : 'Copy code'}
+                >
+                  {isCopied ? (
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                  ) : (
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                    </svg>
+                  )}
+                </button>
+              </div>
+            ) : (
+              <code
+                className={`${inline ? 'bg-gray-800 text-gray-200 px-1 py-0.5 rounded' : ''}`}
+                {...rest}
+              >
+                {children}
+              </code>
+            )
+          },
+          p: ({ children }) => (
+            <p className="mb-3 last:mb-0">{children}</p>
+          ),
+          ul: ({ children }) => (
+            <ul className="mb-3 last:mb-0 ml-4 list-disc">{children}</ul>
+          ),
+          ol: ({ children }) => (
+            <ol className="mb-3 last:mb-0 ml-4 list-decimal">{children}</ol>
+          ),
+          table: ({ children }) => (
+            <div className="overflow-x-auto mb-3">
+              <table className="min-w-full text-sm">{children}</table>
+            </div>
+          ),
+        }}
+      >
+        {content}
+      </ReactMarkdown>
+    </div>
+  )
+})
+
 interface Attachment {
   id: string
   filename: string
@@ -52,6 +132,23 @@ export default function MessageBubble({
   const [editContent, setEditContent] = React.useState(message.content)
   const [isSpeaking, setIsSpeaking] = React.useState(false)
   const [copiedCode, setCopiedCode] = React.useState<string | null>(null)
+  const [hasAnimated, setHasAnimated] = React.useState(false)
+  const [wasStreaming, setWasStreaming] = React.useState(isStreaming)
+
+  // Track when streaming completes for smooth transition
+  React.useEffect(() => {
+    if (wasStreaming && !isStreaming) {
+      // Streaming just completed - trigger smooth transition
+      setWasStreaming(false)
+    } else if (isStreaming) {
+      setWasStreaming(true)
+    }
+  }, [isStreaming, wasStreaming])
+
+  // Only animate on initial mount, not on every render
+  React.useEffect(() => {
+    setHasAnimated(true)
+  }, [])
 
   const formatTime = (date: Date) => {
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
@@ -114,15 +211,15 @@ export default function MessageBubble({
 
   return (
     <div
-      className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'} group animate-fade-in-up`}
+      className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'} group ${!hasAnimated ? 'animate-fade-in-up' : ''}`}
     >
       <div className="relative max-w-xs lg:max-w-2xl">
         <div
-          className={`px-4 py-3 rounded-2xl ${
+          className={`px-4 py-3 rounded-2xl transition-all duration-300 ease-out ${
             message.role === 'user'
               ? 'bg-gradient-to-br from-brand-600 to-brand-700 text-white shadow-elev-1'
               : 'card text-gray-900 dark:text-gray-100'
-          } ${isStreaming ? 'opacity-90' : ''}`}
+          } ${isStreaming ? 'opacity-90 scale-[0.995]' : 'opacity-100 scale-100'}`}
         >
           {isEditing ? (
             <div>
@@ -197,74 +294,12 @@ export default function MessageBubble({
               )}
 
               {message.role === 'assistant' ? (
-                <div className="prose prose-sm max-w-none dark:prose-invert prose-pre:bg-gray-950 prose-pre:border prose-pre:border-white/10 prose-code:before:content-[''] prose-code:after:content-['']">
-                  <ReactMarkdown
-                    remarkPlugins={[remarkGfm]}
-                    components={{
-                      code(props: any) {
-                        const { node, inline, className, children, ...rest } = props
-                        const match = /language-(\w+)/.exec(className || '')
-                        const codeString = String(children).replace(/\n$/, '')
-                        const codeId = `${message.id}-${match?.[1] || 'code'}-${codeString.slice(0, 20)}`
-                        const isCopied = copiedCode === codeId
-                        
-                        return !inline && match ? (
-                          <div className="relative group">
-                            <SyntaxHighlighter
-                              style={vscDarkPlus}
-                              language={match[1]}
-                              PreTag="div"
-                              className="rounded-xl !text-sm"
-                              showLineNumbers={true}
-                              {...rest}
-                            >
-                              {codeString}
-                            </SyntaxHighlighter>
-                            <button
-                              onClick={() => handleCopyCode(codeString, codeId)}
-                              className="absolute top-2 right-2 p-2 bg-gray-700/90 hover:bg-gray-600 text-gray-300 hover:text-white rounded-lg transition-all duration-200 opacity-0 group-hover:opacity-100 focus:opacity-100"
-                              title={isCopied ? 'Copied!' : 'Copy code'}
-                              aria-label={isCopied ? 'Copied!' : 'Copy code'}
-                            >
-                              {isCopied ? (
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                </svg>
-                              ) : (
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                                </svg>
-                              )}
-                            </button>
-                          </div>
-                        ) : (
-                          <code
-                            className={`${inline ? 'bg-gray-800 text-gray-200 px-1 py-0.5 rounded' : ''}`}
-                            {...rest}
-                          >
-                            {children}
-                          </code>
-                        )
-                      },
-                      p: ({ children }) => (
-                        <p className="mb-3 last:mb-0">{children}</p>
-                      ),
-                      ul: ({ children }) => (
-                        <ul className="mb-3 last:mb-0 ml-4 list-disc">{children}</ul>
-                      ),
-                      ol: ({ children }) => (
-                        <ol className="mb-3 last:mb-0 ml-4 list-decimal">{children}</ol>
-                      ),
-                      table: ({ children }) => (
-                        <div className="overflow-x-auto mb-3">
-                          <table className="min-w-full text-sm">{children}</table>
-                        </div>
-                      ),
-                    }}
-                  >
-                    {message.content}
-                  </ReactMarkdown>
-                </div>
+                <MarkdownContent
+                  content={message.content}
+                  messageId={message.id}
+                  onCopyCode={handleCopyCode}
+                  copiedCode={copiedCode}
+                />
               ) : (
                 <p className="whitespace-pre-wrap">{message.content}</p>
               )}
@@ -290,9 +325,9 @@ export default function MessageBubble({
           )}
         </div>
 
-        {/* Action buttons (Edit/Regenerate) - Always visible */}
+        {/* Action buttons (Edit/Regenerate) - Fade in smoothly when streaming completes */}
         {!isStreaming && !isEditing && (
-          <div className={`flex gap-1 mt-1 ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+          <div className={`flex gap-1 mt-1 ${message.role === 'user' ? 'justify-end' : 'justify-start'} animate-fade-in`}>
             {message.role === 'user' && onEditMessage && (
               <button
                 onClick={handleStartEdit}

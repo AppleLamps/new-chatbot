@@ -66,6 +66,24 @@ body {
 
 .animate-fade-in-up {
   animation: fadeInUp 0.3s ease-out;
+  /* Use GPU acceleration for smoother animations */
+  will-change: transform, opacity;
+  transform: translateZ(0);
+}
+
+/* Simple fade in for action buttons */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.4s ease-out;
+  will-change: opacity;
 }
 
 /* Smooth sidebar collapse animation */
